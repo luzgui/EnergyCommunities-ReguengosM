@@ -1,3 +1,8 @@
+# This file defines the technologies used in the Calliope model
+# Due to privacy reasons the files for weather and demand timeseries are not supplied. 
+# However, the model can be ran using suitable data.
+
+
 tech_groups:
     pv_group:
         essentials:
@@ -6,13 +11,14 @@ tech_groups:
 
         constraints:
             export_carrier: power_RES
-            resource: file=
+            resource: file= #Resoure msut be provided
             resource_unit: energy_per_cap            
             parasitic_eff: 0.85            
             lifetime: 25
             export_cap: 0
             # energy_cap_per_unit: 0.25
-            
+    
+    #Transfomer that applies the Low Voltage tariff to the PVproduced energy
     transformer_RES:
         essentials:
             carrier_in: power_RES
@@ -50,9 +56,10 @@ techs:
         constraints:
             resource: file=
     
+    # The winery and the city purchase electricity at different prices
     supply_grid_power:
           essentials:
-              name: 'National grid import'
+              name: 'city grid import'
               color: '#C5ABE3'
               parent: 'supply'
               carrier: 'power'
@@ -66,9 +73,8 @@ techs:
                   energy_cap: 0
                   # om_prod: 0.19705
                   om_prod: 0.12765 
-                  # 0.2 - 1/4 LV - 1/2 MV (cobrado no derivation_cable)
+                  # 0.2 - 1/4 LV - 1/2 MV (charged at the derivation_cable)
                   # 20c€/kWh electricity price #ppt
-                  
     supply_grid_power_winery:
           essentials:
               name: 'Winery grid import'
@@ -84,7 +90,7 @@ techs:
                   energy_cap: 0
                   # om_prod: 0.14 
                   om_prod: file=
-                  
+    # Transmission cables connect PTs                 
     transmission_cable:
           essentials:
             carrier: power
@@ -95,6 +101,7 @@ techs:
             monetary:
               om_prod: 0.00001 # evitar fluxo marados
 
+    # Derivation cables are connecting PTs and derivation nodes
     derivation_cable:
           essentials:
             carrier: power
@@ -271,7 +278,8 @@ techs:
             monetary:
                 om_con: 0  # have to assess this
                 # variar para representar o custo da EGAC
-                
+    
+    #Fake demand exists as a flexible demand that models the power export to nearby regions 
     fake_demand:
         essentials:
             name: 'Fake demand'
