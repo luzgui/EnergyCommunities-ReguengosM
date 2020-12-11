@@ -1,0 +1,283 @@
+tech_groups:
+    pv_group:
+        essentials:
+            parent: supply_plus
+            carrier: power_RES
+
+        constraints:
+            export_carrier: power_RES
+            resource: file=
+            resource_unit: energy_per_cap            
+            parasitic_eff: 0.85            
+            lifetime: 25
+            export_cap: 0
+            # energy_cap_per_unit: 0.25
+            
+    transformer_RES:
+        essentials:
+            carrier_in: power_RES
+            carrier_out: power
+            parent: conversion
+        constraints:
+            energy_eff: 1
+            energy_cap_equals: 4e4
+        costs:
+            monetary:
+               om_prod: 0.0294 # 1/2 of LV grid fees (5.88 c€/kWh)
+
+techs:
+    demand_power:
+        essentials:
+            name: 'Power demand'
+            parent: 'demand'
+            carrier: 'power'
+        constraints:
+            resource: file=
+    
+    demand_power_adegas:
+        essentials:
+            name: 'Power demand Adegas'
+            parent: 'demand'
+            carrier: 'power_adega'
+        constraints:
+            resource: file=
+            
+    demand_power_residential:
+        essentials:
+            name: 'Power demand Residential'
+            parent: 'demand'
+            carrier: 'power'
+        constraints:
+            resource: file=
+    
+    supply_grid_power:
+          essentials:
+              name: 'National grid import'
+              color: '#C5ABE3'
+              parent: 'supply'
+              carrier: 'power'
+          constraints:
+              resource: inf
+              lifetime: 25
+              energy_cap_equals: 10e3
+          costs:
+              monetary:
+                  interest_rate: 0.001
+                  energy_cap: 0
+                  # om_prod: 0.19705
+                  om_prod: 0.12765 
+                  # 0.2 - 1/4 LV - 1/2 MV (cobrado no derivation_cable)
+                  # 20c€/kWh electricity price #ppt
+                  
+    supply_grid_power_winery:
+          essentials:
+              name: 'Winery grid import'
+              color: '#DE25D2'
+              parent: 'supply'
+              carrier: 'power_adega'
+          constraints:
+              resource: inf
+              lifetime: 25
+          costs:
+              monetary:
+                  interest_rate: 0.10
+                  energy_cap: 0
+                  # om_prod: 0.14 
+                  om_prod: file=
+                  
+    transmission_cable:
+          essentials:
+            carrier: power
+            parent: 'transmission'
+          constraints:
+            energy_cap_equals: 1e6
+          costs:
+            monetary:
+              om_prod: 0.00001 # evitar fluxo marados
+
+    derivation_cable:
+          essentials:
+            carrier: power
+            parent: transmission
+          constraints:
+            energy_cap_equals: 1e6
+          costs:
+            monetary:
+                om_prod: 0.01795 # 1/4 LV + 1/2 MV grid fees (5.88 c€/kWh)
+    
+    derivation_cable_free:
+          essentials:
+            carrier: power
+            parent: transmission
+          constraints:
+            energy_cap_equals: 1e6
+          costs:
+            monetary:
+              om_prod: 0.00001 # evitar fluxo marados  
+    
+    derivation_cable_2:
+          essentials:
+            carrier: 'power_adega'
+            parent: 'transmission'
+          constraints:
+            energy_cap_equals: 1e6
+            # no costs were applied here, as it it inscompatible with one-way
+            # costs were allocated in ???          
+                
+    pv_utility:
+        essentials:
+            name: 'Large-scale PV plant'
+            color: '#ff9933'
+            parent: pv_group
+        constraints:
+            lifetime: 25
+            force_resource: true
+            resource_area_per_energy_cap: 20
+        costs:
+            monetary:
+                energy_cap: 700 # €/kW
+
+    pv_rooftop:
+        essentials:
+            name: 'Residential rooftop PV'
+            color: '#ffcc00'
+            parent: pv_group
+        constraints:
+            lifetime: 25
+            force_resource: true
+            resource_area_per_energy_cap: 10
+        costs:
+            monetary:
+                energy_cap: 1500 # €/kW
+    pv_winery2:
+        essentials:
+            name: 'Winery2 Generic PV'
+            color: '#FF8C00'
+            parent: pv_group
+        constraints:
+            lifetime: 25
+            force_resource: true
+            resource_area_per_energy_cap: 10
+        costs:
+            monetary:
+                energy_cap: 1000 # €/kW
+                om_prod: 0.0588                
+    pv_rooftop_2:
+        essentials:
+            name: 'Residential rooftop PV 2'
+            color: '#DC143C'
+            parent: 'supply_plus'
+            carrier: 'power_adega'
+        constraints:
+            # export_carrier: power_2
+            resource: file=
+            resource_unit: energy_per_cap
+            parasitic_eff: 0.85
+            lifetime: 25
+            export_cap: 0
+            force_resource: true
+            resource_area_per_energy_cap: 20
+        costs:
+            monetary:
+                energy_cap: 800 # €/kW
+                interest_rate: 0.05 # 5%    
+    battery:
+        essentials:
+            name: 'Battery storage'
+            color: '#ff4d4d'
+            parent: storage
+            carrier: power
+        constraints:
+            energy_cap_max: 28000  # SLuis x7
+            storage_cap_max: 56000 # SLuis x7 
+            
+            energy_cap_per_storage_cap_max: 4            
+            energy_eff: 0.99  # 0.95 * 0.95 = 0.9025 round trip efficiency
+            storage_loss: 0.01
+            lifetime: 5
+            
+            force_asynchronous_prod_con: True
+        costs:
+            monetary:
+                interest_rate: 0.01
+                # storage_cap: 205  # USD per kWh storage capacity @2018
+                storage_cap: 130  # USD per kWh storage capacity  @2018
+                # energy_cap: 680 # @2025
+                energy_cap: 450 #  @2025 
+    
+    # the next three transformers have the same properties except name & color
+    # for html/plotly visuallization
+    # all of them add LV grid fees without increasing generator LCOE
+    transformer_pv_utility:
+        essentials:        
+            name: '_Large-scale PV plant_'
+            color: '#ff9933'
+            parent: transformer_RES
+
+    transformer_pv_rooftop:
+        essentials:        
+            name: '_Residential rooftop PV_'
+            color: '#ffcc00'
+            parent: transformer_RES            
+
+    transformer_pv_winery2:
+        essentials:        
+            name: '_Residential rooftop PV_'
+            color: '#FF8C00'
+            parent: transformer_RES            
+      
+    # for exportation              
+    transformer_x:
+        essentials:
+            name: 'Transformer X'
+            carrier_in: power
+            carrier_out: power_x
+            parent: conversion
+        constraints:
+            energy_eff: 1
+            energy_cap_equals: 4e4
+            
+    transformer_x_adega:
+        essentials:
+            name: 'Transformer X'
+            carrier_in: power_adega
+            carrier_out: power_x
+            parent: conversion
+        constraints:
+            energy_eff: 1
+            energy_cap_equals: 4e4
+            
+    transformer_P2_to_P:
+        essentials:
+            name: 'Transformer P2 to P'
+            carrier_in: power_adega
+            carrier_out: power
+            parent: conversion
+        constraints:
+            energy_eff: 1
+        costs:
+            monetary:
+                om_con: 0.0588 # have to assess this
+    
+    transformer_P_to_P2:
+        essentials:
+            name: 'Transformer P to P2'
+            carrier_in: power
+            carrier_out: power_adega
+            parent: conversion
+        constraints:
+            energy_eff: 1
+        costs:
+            monetary:
+                om_con: 0  # have to assess this
+                # variar para representar o custo da EGAC
+                
+    fake_demand:
+        essentials:
+            name: 'Fake demand'
+            parent: demand
+            carrier: power_x
+        constraints:
+            resource: -1e6 # with force_resource: false, this indicates max
+            force_resource: false
+            energy_con: true
